@@ -1,47 +1,69 @@
+import classNames from 'classnames';
 import { useMapContext } from 'providers';
 import React from 'react';
-import { MapItem } from 'types/map';
+import { MapItem } from 'types';
 import DataItem from './DataItem';
 import Tile from './Tile';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-type Props = { data: MapItem[] };
 
 const MAP_Y = 12;
 const MAP_X = 12;
 
-const resolveMoveTransformation = (
-  movedDistance: [number, number],
-  movingDistance: [number, number],
-  zoomLevel: number
-) => {
-  const [movedX, movedY] = movedDistance;
-  const [movingX, movingY] = movingDistance;
+const Map = () => {
+  const {
+    startDragging,
+    stopDragging,
+    drag,
+    mapItems,
+    moveDistance,
+    zoomLevel,
+    selectItem,
+    selectedItem,
+    openSidebar,
+  } = useMapContext();
 
-  return {
-    transform: `translate(${movedX + movingX}px, ${movedY + movingY}px) scale(${zoomLevel}%)`,
+  const handleDragStart: React.DragEventHandler<HTMLDivElement> = e => {
+    startDragging(e.pageX, e.pageY);
+
+    // prevent drag preview
+    const img = document.createElement('img');
+    img.src = '';
+    e.dataTransfer.setDragImage(img, -99999, -99999);
   };
-};
 
-const Map = ({ data }: Props) => {
-  const { handleDrag, handleDragEnd, handleDragStart, transform } = useMapContext();
+  const handleDrag: React.DragEventHandler<HTMLDivElement> = ({ pageX, pageY }) => {
+    drag(pageX, pageY);
+  };
+
+  const handleDragEnd: React.DragEventHandler<HTMLDivElement> = () => {
+    stopDragging();
+  };
+
+  const handleItemClick = React.useCallback(
+    (item: MapItem) => {
+      openSidebar();
+      selectItem(item);
+    },
+    [openSidebar, selectItem]
+  );
 
   return (
     <div
-      className='w-screen relative transform scale-100'
+      className='relative transform scale-100'
       draggable
       onDragStart={handleDragStart}
       onDrag={handleDrag}
       onDragEnd={handleDragEnd}
-      style={{ transform }}>
+      style={{ transform: `translate(${moveDistance[0]}px, ${moveDistance[1]}px) scale(${zoomLevel}%)` }}>
       <div className='w-full h-full grid grid-cols-12 grid-rows-12 gap-1'>
         {new Array(MAP_X * MAP_Y).fill(null).map((_, idx) => (
           <Tile key={idx}></Tile>
         ))}
       </div>
-      <div className='w-full h-full grid grid-cols-12 grid-rows-12 gap-1 absolute top-0 left-0'>
-        {data.map(({ id, size, top, left }) => (
-          <DataItem key={id} top={top} left={left} size={size} />
+      <div className={classNames('w-full h-full', 'grid grid-cols-12 grid-rows-12 gap-1', 'absolute top-0 left-0')}>
+        {mapItems.map(item => (
+          <DataItem key={item.id} item={item} onClick={handleItemClick} selected={selectedItem?.id === item.id} />
         ))}
       </div>
     </div>

@@ -1,15 +1,15 @@
-import classNames from 'classnames'
-import React from 'react'
-import { Dropdown, DropdownPlacement, DropdownProps } from '../../components'
-import { useVisibilityControl, VisibilityControl, VisibilityProps } from '../../hooks'
+import classNames from 'classnames';
+import React from 'react';
+import { Dropdown, DropdownPlacement, DropdownProps } from 'components';
+import { useVisibilityControl, VisibilityControl, VisibilityProps } from 'hooks';
 
 type Props = Omit<DropdownProps, 'control'> &
   VisibilityProps & {
-    trigger: React.ReactElement
-    placement?: DropdownPlacement
-    arrow?: boolean
-    control?: VisibilityControl
-  }
+    trigger: React.ReactElement;
+    placement?: DropdownPlacement;
+    arrow?: boolean;
+    control?: VisibilityControl;
+  };
 
 const Popover = ({
   trigger: triggerProp,
@@ -23,25 +23,25 @@ const Popover = ({
   plainBoxModel,
   ...restProps
 }: Props) => {
-  const [primaryAlignment, secondaryAlignment] = placement.split('-')
+  const [primaryAlignment, secondaryAlignment] = placement.split('-');
 
-  const triggerRef = React.useRef<any>(null)
+  const triggerRef = React.useRef<any>(null);
 
-  const cloneElement = React.cloneElement(triggerProp, { ref: triggerRef })
+  const cloneElement = React.cloneElement(triggerProp, { ref: triggerRef });
 
-  const ownControl = useVisibilityControl({ onHide, onShow })
+  const ownControl = useVisibilityControl({ onHide, onShow });
 
-  const control = controlProp || ownControl
+  const control = controlProp || ownControl;
 
   React.useLayoutEffect(() => {
-    const trigger = triggerRef.current
-    trigger?.addEventListener('click', control?.toggle)
-    trigger?.classList.add('cursor-pointer')
+    const trigger = triggerRef.current;
+    trigger?.addEventListener('click', control?.toggle);
+    trigger?.classList.add('cursor-pointer');
 
     return () => {
-      trigger?.removeEventListener('click', control?.show)
-    }
-  }, [control])
+      trigger?.removeEventListener('click', control?.show);
+    };
+  }, [control]);
 
   return (
     <Dropdown
@@ -53,7 +53,7 @@ const Popover = ({
       <>
         <div
           className={classNames('vs-popover__dropdown', 'relative z-10 bg-white rounded-lg', {
-            'px-2 py-1': plainBoxModel
+            'px-2 py-1': plainBoxModel,
           })}>
           {children}
         </div>
@@ -73,19 +73,19 @@ const Popover = ({
                 'top-7': ['right', 'left'].includes(primaryAlignment) && secondaryAlignment === 'top',
                 'top-1/2 -translate-y-1/2':
                   ['right', 'left'].includes(primaryAlignment) && secondaryAlignment === 'center',
-                'bottom-0': ['right', 'left'].includes(primaryAlignment) && secondaryAlignment === 'bottom'
+                'bottom-0': ['right', 'left'].includes(primaryAlignment) && secondaryAlignment === 'bottom',
               },
               {
                 'mt-4': secondaryAlignment === 'bottom',
                 'mr-4': secondaryAlignment === 'left',
                 '-mt-4': secondaryAlignment === 'top',
-                'ml-4': secondaryAlignment === 'right'
+                'ml-4': secondaryAlignment === 'right',
               }
             )}></div>
         )}
       </>
     </Dropdown>
-  )
-}
+  );
+};
 
-export default Popover
+export default Popover;

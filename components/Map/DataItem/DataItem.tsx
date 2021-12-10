@@ -1,21 +1,30 @@
+import classNames from 'classnames';
 import React from 'react';
+import { MapItem } from 'types';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 type Props = {
-  top: number;
-  left: number;
-  size: number;
+  item: MapItem;
+  onClick: (item: MapItem) => void;
+  selected: boolean;
 };
 
-const resolveGridCoords = (top: number, left: number, size: number) => {
+const resolveGridCoords = (item: MapItem) => {
+  const { top, left, size } = item;
+
   return {
-    gridColumn: `${top} / ${top + size}`,
-    gridRow: `${left} / ${left + size}`,
+    gridColumn: `${left + 1} / ${left + 1 + size}`,
+    gridRow: `${top + 1} / ${top + 1 + size}`,
   };
 };
 
-const DataItem = React.memo(({ top, left, size }: Props) => {
-  return <div style={resolveGridCoords(top, left, size)} className='bg-yellow-200'></div>;
+const DataItem = React.memo(({ item, onClick, selected }: Props) => {
+  return (
+    <div
+      style={resolveGridCoords(item)}
+      className={classNames('cursor-pointer transition-all', { 'bg-yellow-200': !selected, 'bg-blue-200': selected })}
+      onClick={() => onClick(item)}></div>
+  );
 });
 
 export default DataItem;

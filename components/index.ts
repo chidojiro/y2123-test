@@ -1,4 +1,6 @@
 export { default as Map } from './Map';
 export * from './Map';
-export { default as AspectRatio } from './AspectRatio';
-export * from './AspectRatio';
+export { default as Sidebar } from './Sidebar';
+export * from './Sidebar';
+
+export * from './common';

@@ -1,19 +1,47 @@
+import { useOnClickOutside } from 'hooks';
 import { noop } from 'lodash';
 import React from 'react';
-import { Children } from 'types';
+import { Children, MapItem } from 'types';
+import { v4 as UUID } from 'uuid';
+
+const mapItems: MapItem[] = [
+  { id: UUID(), username: 'User 1', propertyName: 'Item 1', left: 0, top: 1, size: 2 },
+  { id: UUID(), username: 'User 2', propertyName: 'Item 2', left: 3, top: 1, size: 1 },
+  { id: UUID(), username: 'User 3', propertyName: 'Item 3', left: 5, top: 1, size: 1 },
+  { id: UUID(), username: 'User 4', propertyName: 'Item 4', left: 6, top: 2, size: 1 },
+  { id: UUID(), username: 'User 5', propertyName: 'Item 5', left: 3, top: 3, size: 3 },
+  { id: UUID(), username: 'User 6', propertyName: 'Item 6', left: 8, top: 2, size: 4 },
+  { id: UUID(), username: 'User 7', propertyName: 'Item 7', left: 0, top: 6, size: 6 },
+  { id: UUID(), username: 'User 8', propertyName: 'Item 8', left: 8, top: 7, size: 3 },
+  { id: UUID(), username: 'User 9', propertyName: 'Item 9', left: 7, top: 6, size: 1 },
+];
 
 type MapProviderValue = {
-  handleDragStart: React.DragEventHandler<HTMLDivElement>;
-  handleDragEnd: React.DragEventHandler<HTMLDivElement>;
-  handleDrag: React.DragEventHandler<HTMLDivElement>;
-  transform: string;
+  startDragging: (pageX: number, pageY: number) => void;
+  stopDragging: () => void;
+  drag: (pageX: number, pageY: number) => void;
+  mapItems: MapItem[];
+  moveDistance: [number, number];
+  zoomLevel: number;
+  selectedItem: MapItem | undefined;
+  selectItem: React.Dispatch<React.SetStateAction<MapItem | undefined>>;
+  isSidebarOpen: boolean;
+  openSidebar: () => void;
+  closeSidebar: () => void;
 };
 
 const MapContext = React.createContext<MapProviderValue>({
-  handleDrag: noop,
-  handleDragEnd: noop,
-  handleDragStart: noop,
-  transform: '',
+  startDragging: noop,
+  stopDragging: noop,
+  drag: noop,
+  mapItems: [],
+  moveDistance: [0, 0],
+  zoomLevel: 100,
+  selectedItem: undefined,
+  selectItem: noop,
+  isSidebarOpen: false,
+  openSidebar: noop,
+  closeSidebar: noop,
 });
 
 export const useMapContext = () => React.useContext(MapContext);
@@ -29,18 +57,15 @@ const MapProvider = ({ children }: Props) => {
   const [movingDistance, setMovingDistance] = React.useState<[number, number]>([0, 0]);
   const [dragStartCoords, setDragStartCoords] = React.useState([0, 0]);
   const [zoomLevel, setZoomLevel] = React.useState(100);
+  const [selectedItem, setSelectedItem] = React.useState<MapItem>();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState<boolean>(false);
 
-  const handleDragStart: React.DragEventHandler<HTMLDivElement> = React.useCallback(e => {
-    setDragStartCoords([e.pageX, e.pageY]);
-
-    // prevent drag preview
-    const img = document.createElement('img');
-    img.src = '';
-    e.dataTransfer.setDragImage(img, -99999, -99999);
+  const startDragging = React.useCallback((pageX: number, pageY: number) => {
+    setDragStartCoords([pageX, pageY]);
   }, []);
 
-  const handleDrag: React.DragEventHandler<HTMLDivElement> = React.useCallback(
-    ({ pageX, pageY }) => {
+  const drag = React.useCallback(
+    (pageX: number, pageY: number) => {
       if (!pageX || !pageY) return;
       const [dragStartX, dragStartY] = dragStartCoords;
 
@@ -49,7 +74,7 @@ const MapProvider = ({ children }: Props) => {
     [dragStartCoords]
   );
 
-  const handleDragEnd: React.DragEventHandler<HTMLDivElement> = React.useCallback(() => {
+  const stopDragging = React.useCallback(() => {
     const [movedX, movedY] = movedDistance;
     const [movingX, movingY] = movingDistance;
 
@@ -59,7 +84,7 @@ const MapProvider = ({ children }: Props) => {
   }, [movedDistance, movingDistance]);
 
   React.useEffect(() => {
-    const wheelListener = (e: any) => {
+    const wheelListener = (e: WheelEvent) => {
       const isZoomIn = e.deltaY < 0;
       setZoomLevel(prev =>
         isZoomIn ? Math.min(prev + ZOOM_STEP, MAX_ZOOM_LEVEL) : Math.max(prev - ZOOM_STEP, MIN_ZOOM_LEVEL)
@@ -73,17 +98,43 @@ const MapProvider = ({ children }: Props) => {
     };
   }, []);
 
+  const openSidebar = React.useCallback(() => {
+    setIsSidebarOpen(true);
+  }, []);
+
+  const closeSidebar = React.useCallback(() => {
+    setIsSidebarOpen(false);
+  }, []);
+
   const providerValue = React.useMemo<MapProviderValue>(() => {
     const [movedX, movedY] = movedDistance;
     const [movingX, movingY] = movingDistance;
 
     return {
-      handleDragStart,
-      handleDrag,
-      handleDragEnd,
-      transform: `translate(${movedX + movingX}px, ${movedY + movingY}px) scale(${zoomLevel}%)`,
+      startDragging,
+      drag,
+      stopDragging,
+      mapItems,
+      moveDistance: [movedX + movingX, movedY + movingY],
+      zoomLevel,
+      selectedItem,
+      selectItem: setSelectedItem,
+      isSidebarOpen,
+      openSidebar,
+      closeSidebar,
     };
-  }, [handleDrag, handleDragEnd, handleDragStart, movedDistance, movingDistance, zoomLevel]);
+  }, [
+    closeSidebar,
+    drag,
+    isSidebarOpen,
+    movedDistance,
+    movingDistance,
+    openSidebar,
+    selectedItem,
+    startDragging,
+    stopDragging,
+    zoomLevel,
+  ]);
 
   return <MapContext.Provider value={providerValue}>{children}</MapContext.Provider>;
 };
