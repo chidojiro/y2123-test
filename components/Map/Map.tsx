@@ -1,7 +1,6 @@
 import classNames from 'classnames';
 import { useMapContext } from 'providers';
 import React from 'react';
-import { MapItem } from 'types';
 import DataItem from './DataItem';
 import Tile from './Tile';
 
@@ -11,17 +10,8 @@ const MAP_Y = 12;
 const MAP_X = 12;
 
 const Map = () => {
-  const {
-    startDragging,
-    stopDragging,
-    drag,
-    mapItems,
-    moveDistance,
-    zoomLevel,
-    selectItem,
-    selectedItem,
-    openSidebar,
-  } = useMapContext();
+  const { startDragging, stopDragging, drag, mapItems, moveDistance, zoomLevel, selectItem, selectedItem } =
+    useMapContext();
 
   const handleDragStart: React.DragEventHandler<HTMLDivElement> = e => {
     startDragging(e.pageX, e.pageY);
@@ -40,14 +30,6 @@ const Map = () => {
     stopDragging();
   };
 
-  const handleItemClick = React.useCallback(
-    (item: MapItem) => {
-      openSidebar();
-      selectItem(item);
-    },
-    [openSidebar, selectItem]
-  );
-
   return (
     <div
       className='relative transform scale-100'
@@ -56,14 +38,21 @@ const Map = () => {
       onDrag={handleDrag}
       onDragEnd={handleDragEnd}
       style={{ transform: `translate(${moveDistance[0]}px, ${moveDistance[1]}px) scale(${zoomLevel}%)` }}>
-      <div className='w-full h-full grid grid-cols-12 grid-rows-12 gap-1'>
+      <div className='absolute top-0 left-0 w-full h-full bg-gray-400'></div>
+      <div className='grid w-full h-full grid-cols-12 gap-1 grid-rows-12'>
         {new Array(MAP_X * MAP_Y).fill(null).map((_, idx) => (
           <Tile key={idx}></Tile>
         ))}
       </div>
       <div className={classNames('w-full h-full', 'grid grid-cols-12 grid-rows-12 gap-1', 'absolute top-0 left-0')}>
         {mapItems.map(item => (
-          <DataItem key={item.id} item={item} onClick={handleItemClick} selected={selectedItem?.id === item.id} />
+          <DataItem
+            key={item.id}
+            item={item}
+            onClick={selectItem}
+            selected={selectedItem?.id === item.id}
+            zoomLevel={zoomLevel}
+          />
         ))}
       </div>
     </div>

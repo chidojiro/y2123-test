@@ -23,6 +23,7 @@ export type Props = React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>
     placement: Placement | Placement[];
     control: VisibilityControl;
     plainBoxModel?: boolean;
+    open?: boolean;
   };
 
 const Dropdown = ({
@@ -33,6 +34,7 @@ const Dropdown = ({
   trigger,
   placement: placementProp,
   control,
+  open,
   ...restProps
 }: Props) => {
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -176,11 +178,13 @@ const Dropdown = ({
     setPlacement(_placement);
   }, [getDropdownCoordsWithAlignOf, placementProp]);
 
+  const isOpen = open || control.visible;
+
   React.useLayoutEffect(() => {
-    if (control.visible) {
+    if (isOpen) {
       positionDropdown();
     }
-  }, [positionDropdown, control.visible]);
+  }, [positionDropdown, isOpen]);
 
   React.useEffect(() => {
     window.addEventListener('resize', positionDropdown);
@@ -212,7 +216,7 @@ const Dropdown = ({
   return (
     <>
       {clonedTrigger}
-      {!!control.visible &&
+      {!!isOpen &&
         ReactDOM.createPortal(
           <Container
             triggerRef={triggerRef}

@@ -7,8 +7,8 @@ type Props = Omit<DropdownProps, 'control'> &
   VisibilityProps & {
     trigger: React.ReactElement;
     placement?: DropdownPlacement;
-    arrow?: boolean;
     control?: VisibilityControl;
+    open?: boolean;
   };
 
 const Popover = ({
@@ -16,15 +16,13 @@ const Popover = ({
   placement = 'bottom-center',
   children,
   control: controlProp,
-  arrow = true,
   onHide,
   onShow,
   className,
   plainBoxModel,
+  open,
   ...restProps
 }: Props) => {
-  const [primaryAlignment, secondaryAlignment] = placement.split('-');
-
   const triggerRef = React.useRef<any>(null);
 
   const cloneElement = React.cloneElement(triggerProp, { ref: triggerRef });
@@ -49,6 +47,7 @@ const Popover = ({
       placement={placement}
       className={classNames('overflow-visible rounded-lg', className)}
       control={control}
+      open={open}
       {...restProps}>
       <>
         <div
@@ -57,32 +56,6 @@ const Popover = ({
           })}>
           {children}
         </div>
-        {!!arrow && (
-          <div
-            className={classNames(
-              'vs-tooltip__dropdown-arrow',
-              'absolute w-3 h-3 transform rotate-45 bg-white shadow z-0',
-              {
-                '-top-1.5': primaryAlignment === 'bottom',
-                '-bottom-1.5': primaryAlignment === 'top',
-                '-left-1.5': primaryAlignment === 'right',
-                '-right-1.5': primaryAlignment === 'left',
-                'left-1/2 -translate-x-1/2':
-                  ['bottom', 'top'].includes(primaryAlignment) && secondaryAlignment === 'center',
-                'right-7': ['bottom', 'top'].includes(primaryAlignment) && secondaryAlignment === 'right',
-                'top-7': ['right', 'left'].includes(primaryAlignment) && secondaryAlignment === 'top',
-                'top-1/2 -translate-y-1/2':
-                  ['right', 'left'].includes(primaryAlignment) && secondaryAlignment === 'center',
-                'bottom-0': ['right', 'left'].includes(primaryAlignment) && secondaryAlignment === 'bottom',
-              },
-              {
-                'mt-4': secondaryAlignment === 'bottom',
-                'mr-4': secondaryAlignment === 'left',
-                '-mt-4': secondaryAlignment === 'top',
-                'ml-4': secondaryAlignment === 'right',
-              }
-            )}></div>
-        )}
       </>
     </Dropdown>
   );

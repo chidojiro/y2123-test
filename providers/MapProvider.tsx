@@ -1,4 +1,3 @@
-import { useOnClickOutside } from 'hooks';
 import { noop } from 'lodash';
 import React from 'react';
 import { Children, MapItem } from 'types';
@@ -25,9 +24,6 @@ type MapProviderValue = {
   zoomLevel: number;
   selectedItem: MapItem | undefined;
   selectItem: React.Dispatch<React.SetStateAction<MapItem | undefined>>;
-  isSidebarOpen: boolean;
-  openSidebar: () => void;
-  closeSidebar: () => void;
 };
 
 const MapContext = React.createContext<MapProviderValue>({
@@ -39,9 +35,6 @@ const MapContext = React.createContext<MapProviderValue>({
   zoomLevel: 100,
   selectedItem: undefined,
   selectItem: noop,
-  isSidebarOpen: false,
-  openSidebar: noop,
-  closeSidebar: noop,
 });
 
 export const useMapContext = () => React.useContext(MapContext);
@@ -58,7 +51,6 @@ const MapProvider = ({ children }: Props) => {
   const [dragStartCoords, setDragStartCoords] = React.useState([0, 0]);
   const [zoomLevel, setZoomLevel] = React.useState(100);
   const [selectedItem, setSelectedItem] = React.useState<MapItem>();
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState<boolean>(false);
 
   const startDragging = React.useCallback((pageX: number, pageY: number) => {
     setDragStartCoords([pageX, pageY]);
@@ -98,14 +90,6 @@ const MapProvider = ({ children }: Props) => {
     };
   }, []);
 
-  const openSidebar = React.useCallback(() => {
-    setIsSidebarOpen(true);
-  }, []);
-
-  const closeSidebar = React.useCallback(() => {
-    setIsSidebarOpen(false);
-  }, []);
-
   const providerValue = React.useMemo<MapProviderValue>(() => {
     const [movedX, movedY] = movedDistance;
     const [movingX, movingY] = movingDistance;
@@ -119,22 +103,8 @@ const MapProvider = ({ children }: Props) => {
       zoomLevel,
       selectedItem,
       selectItem: setSelectedItem,
-      isSidebarOpen,
-      openSidebar,
-      closeSidebar,
     };
-  }, [
-    closeSidebar,
-    drag,
-    isSidebarOpen,
-    movedDistance,
-    movingDistance,
-    openSidebar,
-    selectedItem,
-    startDragging,
-    stopDragging,
-    zoomLevel,
-  ]);
+  }, [drag, movedDistance, movingDistance, selectedItem, startDragging, stopDragging, zoomLevel]);
 
   return <MapContext.Provider value={providerValue}>{children}</MapContext.Provider>;
 };
